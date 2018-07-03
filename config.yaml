@@ -1,27 +1,42 @@
 ---
-
 config:
   basedir: '/mirror'
+  rpm: '/usr/bin/rpm'
+  reposync: '/usr/bin/reposync'
+  yum_delete_on_signature_verify_fail: true
+  yum_delete_missing_upstream: true
 keys:
   -
     type: rpm
     url: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-7
-    digest_method: sha256
+    checksum_method: sha256
     checksum: 8b48b04b336bd725b9e611c441c65456a4168083c4febc28e88828d8ec14827f
-
-items:
+repos:
   -
-    name: CentOS 7 Base
-    path: repo/centos-7-/os/x86_64
+    name: base
+    path: repo/centos-7
     type: yum
     url: http://mirror.centos.org/centos-7/7/os/x86_64/
-    validation:
-      type: rpm
   -
-    name: Vmware-Workstation-14
-    path: /bin/vmware/workstation/Vmware-Workstation-14.bundle
-    type: file
-    url: http://Vmware-Workstation-14
-    validation:
-      type: sha1
-      checksum: 0x0x0x0x0x0x0x0x0x
+    name: extras
+    path: repo/centos-7
+    type: yum
+    url: http://mirror.centos.org/centos-7/7/extras/x86_64/
+  -
+    name: updates
+    path: repo/centos-7
+    type: yum
+    url: http://mirror.centos.org/centos-7/7/updates/x86_64/
+files:
+  -
+    name: putty.exe
+    path: bin/putty
+    url: https://the.earth.li/~sgtatham/putty/latest/w64/putty.exe
+    checksum_method: sha256
+    checksum: 7afb56dd48565c3c9804f683c80ef47e5333f847f2d3211ec11ed13ad36061e1
+  -
+    name: winscp.exe
+    path: bin/winscp
+    url: https://winscp.net/download/files/2018070315559cb3e62a6cce02b2315477878d767061/WinSCP-5.13.3-Setup.exe
+    checksum_method: sha256
+    checksum: 58eeeb8454b8a7d194e3b58a1d6f2fb501906b8f1c3f2716a4a6d15e16164b86
