@@ -1,0 +1,27 @@
+---
+
+config:
+  basedir: '/mirror'
+keys:
+  -
+    type: rpm
+    url: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-7
+    digest_method: sha256
+    checksum: 8b48b04b336bd725b9e611c441c65456a4168083c4febc28e88828d8ec14827f
+
+items:
+  -
+    name: CentOS 7 Base
+    path: repo/centos-7-/os/x86_64
+    type: yum
+    url: http://mirror.centos.org/centos-7/7/os/x86_64/
+    validation:
+      type: rpm
+  -
+    name: Vmware-Workstation-14
+    path: /bin/vmware/workstation/Vmware-Workstation-14.bundle
+    type: file
+    url: http://Vmware-Workstation-14
+    validation:
+      type: sha1
+      checksum: 0x0x0x0x0x0x0x0x0x
