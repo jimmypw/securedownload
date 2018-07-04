@@ -72,6 +72,37 @@ baseurl=#{url}
   eos
 end
 
+def vanilla_config
+  <<-eof
+---
+config:
+  basedir: '/mirror'
+  rpm: '/usr/bin/rpm'
+  reposync: '/usr/bin/reposync'
+  yum_delete_on_signature_verify_fail: true
+  yum_delete_missing_upstream: true
+keys:
+  -
+    type: rpm
+    url: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-7
+    checksum_method: sha256
+    checksum: 8b48b04b336bd725b9e611c441c65456a4168083c4febc28e88828d8ec14827f
+repos:
+  -
+    name: base
+    path: repo/centos-7
+    type: yum
+    url: http://mirror.centos.org/centos-7/7/os/x86_64/
+files:
+  -
+    name: putty.exe
+    path: bin/putty
+    url: https://the.earth.li/~sgtatham/putty/latest/w64/putty.exe
+    checksum_method: sha256
+    checksum: 7afb56dd48565c3c9804f683c80ef47e5333f847f2d3211ec11ed13ad36061e1
+  eof
+end
+
 def synchronise_yum_repo(config, yumconfig, targetdir)
   sync_command = "#{config['reposync']} -c #{yumconfig} -p #{targetdir}"
   sync_command += " -d" if config['yum_delete_missing_upstream']
@@ -168,7 +199,7 @@ end
 
 
 
-options = {:keys => false, :repos => false, :files => false, :configfile => '/etc/securedownload'}
+options = {:keys => false, :repos => false, :files => false, :configfile => '/etc/securedownload', :bootstrap => false}
 
 OptionParser.new do |opts|
   opts.banner = "Usage: securedownload [options]"
@@ -186,11 +217,18 @@ OptionParser.new do |opts|
   end
 
   opts.on('-cFILE', '--config=FILE', 'Config file') do |v|
-    puts v
     options[:configfile] = v
   end
 
+  opts.on('-b', '--bootstrap', 'Print a bootstrap configuration and exit') do |v|
+    options[:bootstrap] = v
+  end
 end.parse!
+
+if options[:bootstrap]
+  puts vanilla_config
+  exit 1
+end
 
 if Process.euid != 0
   puts "This script has to be run as root"
