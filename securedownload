@@ -150,11 +150,9 @@ def process_yum_repo(config, name, url, path)
 end
 
 def download_file(target, url)
-  uri = URI(url)
-  File.open(target, "wb") do |save|
-    open(url, "rb") do |read|
-      save.write(read.read)
-    end
+  open(url, "rb") do |fin|
+    fin.close
+    FileUtils.mv(fin, target)
   end
 end
 
@@ -167,6 +165,7 @@ def process_file(config, name, url, path, checksum_method, checksum)
   targetdir = "#{config['basedir']}/#{path}"
   finaldestination = "#{targetdir}/#{name}"
   if File.exists?(finaldestination)
+      puts "File: #{name} already exists, revalidating checksum."
       if validate_file(finaldestination, checksum_method, checksum)
         puts "File: #{name} is good, skipping."
         return
