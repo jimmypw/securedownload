@@ -11,6 +11,11 @@ keys:
     url: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-7
     checksum_method: sha256
     checksum: 8b48b04b336bd725b9e611c441c65456a4168083c4febc28e88828d8ec14827f
+  -
+    type: rpm
+    url: https://archive.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-7
+    checksum_method: sha256
+    checksum: 028b9accc59bab1d21f2f3f544df5469910581e728a64fd8c411a725a82300c2
 repos:
   -
     name: base
@@ -27,6 +32,11 @@ repos:
     path: repo/centos-7
     type: yum
     url: http://mirror.centos.org/centos-7/7/updates/x86_64/
+  -
+    name: epel
+    path: repo/centos-7
+    type: yum
+    url: https://archive.fedoraproject.org/pub/epel/7/x86_64/
 files:
   -
     name: putty.exe

@@ -6,11 +6,8 @@ require 'openssl'
 require 'open3'
 require 'fileutils'
 require 'find'
+require 'optparse'
 
-if Process.euid != 0
-  puts "This script has to be run as root"
-  exit
-end
 
 def get_digest(checksum_method)
   case checksum_method
@@ -20,11 +17,6 @@ def get_digest(checksum_method)
       raise "Did not recognise checksum_method"
   end
   digest
-end
-
-def digest(data, checksum_method)
-  digest = get_digest(checksum_method)
-  digest.hexdigest(data)
 end
 
 def digest_file(filename, checksum_method)
@@ -41,27 +33,21 @@ def generate_tmp_filename
   "/tmp/filegrabber_#{Process.pid}_#{rand(500)}"
 end
 
-def validate_data(data, checksum_method, checksum)
-  digest = digest(data, checksum_method)
-  checksum.eql?(digest)
-end
-
-def import_rpm_key(config, data)
-  tmpfile = generate_tmp_filename
-  File.write(tmpfile, data)
-  stdout, status = Open3.capture2("#{config['rpm']} --import #{tmpfile}")
-  File.delete(tmpfile)
-  raise "Import failed" if status != 0
+def import_rpm_key(config, file)
+  stdout, status = Open3.capture2("#{config['rpm']} --import #{file}")
+  raise "Import of RPM key #{file} failed!" if status != 0
 end
 
 def process_rpm_key(config, url, checksum_method, expected_checksum)
-  data = open(url).read
-  if validate_data(data, checksum_method, expected_checksum)
+  tmpfile = generate_tmp_filename
+  download_file(tmpfile, url)
+  if validate_file(tmpfile, checksum_method, expected_checksum)
     puts "Key: Importing #{url} to the system rpm keyring"
-    import_rpm_key(config, data)
+    import_rpm_key(config, tmpfile)
   else
     raise "RPM Key '#{url}' does not match checksum."
   end
+  File.delete(tmpfile)
 end
 
 def import_keys(config, keys)
@@ -121,7 +107,6 @@ def import_repos(config, repos)
 end
 
 def process_yum_repo(config, name, url, path)
-  # generate a yum configuration
   yumconfig = generate_tmp_filename
   File.write(yumconfig, generate_yum_config(url, name))
   targetdir = "#{config['basedir']}/#{path}"
@@ -179,8 +164,53 @@ def import_files(config, files)
   end
 end
 
+### Script begins here
 
-config = YAML.load(File.read('config.yaml'))
-import_keys(config['config'], config['keys'])
-import_repos(config['config'], config['repos'])
-import_files(config['config'], config['files'])
+
+
+options = {:keys => false, :repos => false, :files => false, :configfile => '/etc/securedownload'}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: securedownload [options]"
+
+  opts.on('-k', '--key', 'Download keys') do |v|
+    options[:keys] = true
+  end
+
+  opts.on('-f', '--file', 'Download files') do |v|
+    options[:files] = true
+  end
+
+  opts.on('-r', '--repo', 'Download repos') do |v|
+    options[:repos] = true
+  end
+
+  opts.on('-cFILE', '--config=FILE', 'Config file') do |v|
+    puts v
+    options[:configfile] = v
+  end
+
+end.parse!
+
+if Process.euid != 0
+  puts "This script has to be run as root"
+  exit
+end
+
+puts "Using config file #{options[:configfile]}"
+config = YAML.load(File.read(options[:configfile]))
+
+if options[:keys]
+  puts "Obtaining keys"
+  import_keys(config['config'], config['keys'])
+end
+
+if options[:repos]
+  puts "Obtaining repos"
+  import_repos(config['config'], config['repos'])
+end
+
+if options[:files]
+  puts "Obtaining files"
+  import_files(config['config'], config['files'])
+end
