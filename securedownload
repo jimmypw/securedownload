@@ -8,7 +8,7 @@ require 'fileutils'
 require 'find'
 require 'optparse'
 
-VERSION="v1.2"
+VERSION="v1.3"
 
 
 def get_digest(checksum_method)
