@@ -8,6 +8,8 @@ require 'fileutils'
 require 'find'
 require 'optparse'
 
+VERSION="v1.2"
+
 
 def get_digest(checksum_method)
   case checksum_method
@@ -198,7 +200,7 @@ end
 
 
 
-options = {:keys => false, :repos => false, :files => false, :configfile => '/etc/securedownload', :bootstrap => false}
+options = {:keys => false, :repos => false, :files => false, :configfile => '/etc/securedownload'}
 
 OptionParser.new do |opts|
   opts.banner = "Usage: securedownload [options]"
@@ -220,14 +222,15 @@ OptionParser.new do |opts|
   end
 
   opts.on('-b', '--bootstrap', 'Print a bootstrap configuration and exit') do |v|
-    options[:bootstrap] = v
+    puts vanilla_config
+    exit 1
+  end
+
+  opts.on('-v', '--version', 'Print version number and exit') do |v|
+    puts VERSION
+    exit
   end
 end.parse!
-
-if options[:bootstrap]
-  puts vanilla_config
-  exit 1
-end
 
 if Process.euid != 0
   puts "This script has to be run as root"
