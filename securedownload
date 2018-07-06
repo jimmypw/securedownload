@@ -153,8 +153,11 @@ end
 
 def download_file(target, url)
   open(url, "rb") do |fin|
-    fin.close
-    FileUtils.mv(fin, target)
+    open(target, "wb") do |fout|
+      while buf = fin.read(8192)
+        fout.write(buf)
+      end
+    end
   end
 end
 
